@@ -1,0 +1,15 @@
+{
+  "name": "bili_garb_scripting",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "scripting-cli start",
+    "format": "prettier --write src/"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "scripting-cli": "^1.2.5"
+  }
+}

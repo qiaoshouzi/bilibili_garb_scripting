@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "name": "Bili Garb",
+  "localizedNames": {
+    "ru": "",
+    "it": "",
+    "zh": "哔哩装扮",
+    "ja": "",
+    "pt": "",
+    "en": "",
+    "de": "",
+    "fr": "",
+    "es": ""
+  },
+  "description": "一个可以获取 BiliBili 装扮/收藏集 卡牌的工具",
+  "localizedDescriptions": {},
+  "icon": "tshirt",
+  "runInApp": false,
+  "intentInputTypes": [],
+  "color": "rgba(233, 123, 199,1)",
+  "author": {
+    "name": "CFM.MOE",
+    "email": "sticker@cfm.moe",
+    "homepage": "https://b23.cfm.moe/app"
+  },
+  "remoteResource": null
+}
