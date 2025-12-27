@@ -9,14 +9,49 @@ import {
   Navigation,
   ScrollView,
   NavigationStack,
+  useMemo,
+  useEffect,
+  VStack,
+  VideoPlayer,
+  Picker,
 } from 'scripting'
 import { CardData } from '../utils/api'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+
+function Video({ url }: { url: string }) {
+  const [errMsg, setErrMsg] = useState<string>()
+
+  const player = useMemo(() => {
+    const player = new AVPlayer()
+    player.setSource(url)
+    // player.onTimeControlStatusChanged = setStatus
+    player.onReadyToPlay = () => player.play()
+    player.numberOfLoops = -1
+    player.onError = (e) => setErrMsg(e)
+    SharedAudioSession.setActive(true)
+    SharedAudioSession.setCategory('playback', ['mixWithOthers'])
+    return player
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      player.dispose()
+    }
+  }, [])
+
+  return (
+    <VStack>
+      {errMsg !== undefined && <Text>{errMsg}</Text>}
+      <VideoPlayer player={player} scaleToFill />
+    </VStack>
+  )
+}
 
 export function ImageView({ data }: { data: CardData }) {
   const dismiss = Navigation.useDismiss()
   const [isDownloadingImage, setIsDownloadingImage] = useState(false)
   const [isDownloadingVideo, setIsDownloadingVideo] = useState(false)
+  const [tabIndex, setTabIndex] = useState(0)
   return (
     <NavigationStack>
       <ScrollView
@@ -82,13 +117,30 @@ export function ImageView({ data }: { data: CardData }) {
             </HStack>
           </Button>
         </HStack>
-        <Image
-          imageUrl={data.img + '@832w_1248h.webp'}
-          placeholder={<Text>加载中...</Text>}
-          scaleToFill
-          resizable
-          padding={10}
-        />
+        {data.videos !== undefined && (
+          <Picker
+            title="Showcase Type"
+            value={tabIndex}
+            onChanged={setTabIndex}
+            pickerStyle="segmented"
+            padding={{
+              horizontal: 10,
+            }}
+          >
+            <Text tag={0}>图片</Text>
+            <Text tag={1}>视频</Text>
+          </Picker>
+        )}
+        {tabIndex === 0 && (
+          <Image
+            imageUrl={data.img + '@832w_1248h.webp'}
+            placeholder={<Text>加载中...</Text>}
+            scaleToFill
+            resizable
+            padding={10}
+          />
+        )}
+        {tabIndex === 1 && data.videos && <Video url={data.videos[0]} />}
       </ScrollView>
     </NavigationStack>
   )
