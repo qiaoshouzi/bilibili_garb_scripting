@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": [
-      "esnext"
-    ],
+    "lib": ["esnext"],
     "allowJs": true,
     "strict": true,
     "esModuleInterop": true,
@@ -17,13 +15,8 @@
     "jsxFactory": "createElement",
     "jsxFragmentFactory": "Fragment",
     "paths": {
-      "scripting": [
-        "./types/scripting.d.ts"
-      ]
+      "scripting": ["./dts/scripting.d.ts"]
     }
   },
-  "include": [
-    "./dts/global.d.ts",
-    "scripts"
-  ]
+  "include": ["./dts/global.d.ts", "scripts"]
 }
