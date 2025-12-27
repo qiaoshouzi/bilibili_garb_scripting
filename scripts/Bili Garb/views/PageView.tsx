@@ -1,13 +1,12 @@
 import {
   useState,
-  Navigation,
   useEffect,
   NavigationStack,
   ScrollView,
-  Button,
   Text,
   LazyVGrid,
   Image,
+  NavigationLink,
 } from 'scripting'
 import { CardData, getActResult, getGarbResult, SearchResult } from '../utils/api'
 import { ImageView } from './ImageView'
@@ -23,7 +22,6 @@ export function PackageView({
 }) {
   const [list, setList] = useState<CardData[]>([])
   const [errMsg, setErrMsg] = useState<string>()
-  const dismiss = Navigation.useDismiss()
   useEffect(() => {
     const main = async () => {
       try {
@@ -48,9 +46,9 @@ export function PackageView({
       <ScrollView
         navigationTitle={name}
         navigationBarTitleDisplayMode={'inline'}
-        toolbar={{
-          navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
-        }}
+        // toolbar={{
+        //   navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
+        // }}
         scrollDismissesKeyboard={'immediately'}
       >
         {errMsg !== undefined && <Text>{errMsg}</Text>}
@@ -64,21 +62,14 @@ export function PackageView({
             padding={10}
           >
             {list.map((v) => (
-              <Button
-                action={() => {
-                  Navigation.present({
-                    element: <ImageView data={v} />,
-                  })
-                }}
-                buttonStyle="plain"
-              >
+              <NavigationLink destination={<ImageView data={v} />}>
                 <Image
                   imageUrl={v.img + '@416w_624h.webp'}
                   placeholder={<Text>加载中...</Text>}
                   scaleToFill
                   resizable
                 />
-              </Button>
+              </NavigationLink>
             ))}
           </LazyVGrid>
         )}

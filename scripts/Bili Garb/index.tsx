@@ -11,6 +11,7 @@ import {
   Navigation,
   NavigationStack,
   GeometryReader,
+  NavigationLink,
 } from 'scripting'
 import { SearchResult, getSearchResult } from './utils/api'
 import { PackageView } from './views/PageView'
@@ -39,7 +40,7 @@ function View() {
         return (
           <NavigationStack>
             <ScrollView
-              navigationTitle="主页"
+              navigationTitle="哔哩装扮"
               navigationBarTitleDisplayMode={'inline'}
               toolbar={{
                 cancellationAction: <Button title="完成" action={dismiss} />,
@@ -97,13 +98,8 @@ function View() {
                   {searchResult.map((v) =>
                     v.cover ? (
                       <VStack>
-                        <Button
-                          action={() => {
-                            Navigation.present({
-                              element: <PackageView type={v.type} id={v.id} name={v.name} />,
-                            })
-                          }}
-                          buttonStyle="plain"
+                        <NavigationLink
+                          destination={<PackageView type={v.type} id={v.id} name={v.name} />}
                         >
                           <Image
                             imageUrl={v.cover + '@416w_624h.webp'}
@@ -111,7 +107,7 @@ function View() {
                             scaleToFill
                             resizable
                           />
-                        </Button>
+                        </NavigationLink>
                         <Text font={{ name: 'subheadline', size: 14 }} lineLimit={1}>
                           {v.name}
                         </Text>

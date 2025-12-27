@@ -6,7 +6,6 @@ import {
   Button,
   HStack,
   useState,
-  Navigation,
   ScrollView,
   NavigationStack,
   useMemo,
@@ -48,7 +47,6 @@ function Video({ url }: { url: string }) {
 }
 
 export function ImageView({ data }: { data: CardData }) {
-  const dismiss = Navigation.useDismiss()
   const [isDownloadingImage, setIsDownloadingImage] = useState(false)
   const [isDownloadingVideo, setIsDownloadingVideo] = useState(false)
   const [tabIndex, setTabIndex] = useState(0)
@@ -57,9 +55,9 @@ export function ImageView({ data }: { data: CardData }) {
       <ScrollView
         navigationTitle={data.name}
         navigationBarTitleDisplayMode={'inline'}
-        toolbar={{
-          navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
-        }}
+        // toolbar={{
+        //   navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
+        // }}
         scrollDismissesKeyboard={'immediately'}
       >
         <HStack>
