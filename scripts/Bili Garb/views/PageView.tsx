@@ -49,7 +49,7 @@ export function PackageView({
         navigationTitle={name}
         navigationBarTitleDisplayMode={'inline'}
         toolbar={{
-          cancellationAction: <Button title="完成" action={dismiss} />,
+          navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
         }}
         scrollDismissesKeyboard={'immediately'}
       >

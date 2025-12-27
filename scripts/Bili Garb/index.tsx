@@ -34,10 +34,10 @@ function View() {
     return 2
   }
   return (
-    <NavigationStack>
-      <GeometryReader>
-        {(proxy) => {
-          return (
+    <GeometryReader>
+      {(proxy) => {
+        return (
+          <NavigationStack>
             <ScrollView
               navigationTitle="主页"
               navigationBarTitleDisplayMode={'inline'}
@@ -64,7 +64,6 @@ function View() {
                 },
               }}
             >
-              <Text>{proxy.size.width}</Text>
               {showSearch && (
                 <Button
                   title="搜索"
@@ -148,10 +147,10 @@ function View() {
                 />
               )}
             </ScrollView>
-          )
-        }}
-      </GeometryReader>
-    </NavigationStack>
+          </NavigationStack>
+        )
+      }}
+    </GeometryReader>
   )
 }
 
