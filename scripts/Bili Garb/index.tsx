@@ -4,11 +4,13 @@ import {
   VStack,
   Script,
   Button,
+  GridItem,
   useState,
   LazyVGrid,
   ScrollView,
   Navigation,
   NavigationStack,
+  GeometryReader,
 } from 'scripting'
 import { SearchResult, getSearchResult } from './utils/api'
 import { PackageView } from './views/PageView'
@@ -19,116 +21,136 @@ function View() {
   const [searchResult, setSearchResult] = useState<SearchResult[]>([])
   const [hasMoreResult, setHasMoreResult] = useState(false)
   const [errMsg, setErrMsg] = useState<string>()
+  const [pn, setPn] = useState(1)
   const dismiss = Navigation.useDismiss()
-  let pn = 1
+  const getLength = (w: number) => {
+    const breakpoints = [
+      [900, 4],
+      [500, 3],
+    ]
+    for (const [minWidth, value] of breakpoints) {
+      if (w >= minWidth) return value
+    }
+    return 2
+  }
   return (
     <NavigationStack>
-      <ScrollView
-        navigationTitle="主页"
-        navigationBarTitleDisplayMode={'inline'}
-        toolbar={{
-          cancellationAction: <Button title="完成" action={dismiss} />,
+      <GeometryReader>
+        {(proxy) => {
+          return (
+            <ScrollView
+              navigationTitle="主页"
+              navigationBarTitleDisplayMode={'inline'}
+              toolbar={{
+                cancellationAction: <Button title="完成" action={dismiss} />,
+              }}
+              scrollDismissesKeyboard={'immediately'}
+              searchable={{
+                value: kw,
+                onChanged: setKw,
+                placement: 'navigationBarDrawer',
+                prompt: '装扮名称',
+                presented: {
+                  value: showSearch,
+                  onChanged: (v) => {
+                    if (v === false) {
+                      setKw('')
+                      setSearchResult([])
+                      setHasMoreResult(false)
+                      setErrMsg(undefined)
+                    }
+                    setShowSearch(v)
+                  },
+                },
+              }}
+            >
+              <Text>{proxy.size.width}</Text>
+              {showSearch && (
+                <Button
+                  title="搜索"
+                  systemImage="magnifyingglass"
+                  buttonStyle="borderedProminent"
+                  buttonBorderShape="capsule"
+                  action={async () => {
+                    const i = kw.trim()
+                    if (i === '') return
+                    try {
+                      setErrMsg(undefined)
+                      setPn(1)
+                      const result = await getSearchResult(i, 1)
+                      setSearchResult(result.list)
+                      setHasMoreResult(result.hasMore)
+                    } catch (e) {
+                      console.error(e)
+                      setErrMsg(String(e))
+                    }
+                  }}
+                />
+              )}
+              {errMsg !== undefined && <Text>{errMsg}</Text>}
+              {searchResult.length > 0 && errMsg === undefined && (
+                <LazyVGrid
+                  columns={Array.from<GridItem>({ length: getLength(proxy.size.width) }).fill({
+                    size: { type: 'flexible', max: 'infinity' },
+                  })}
+                  padding={10}
+                >
+                  {searchResult.map((v) =>
+                    v.cover ? (
+                      <VStack>
+                        <Button
+                          action={() => {
+                            Navigation.present({
+                              element: <PackageView type={v.type} id={v.id} name={v.name} />,
+                            })
+                          }}
+                          buttonStyle="plain"
+                        >
+                          <Image
+                            imageUrl={v.cover + '@416w_624h.webp'}
+                            placeholder={<Text>加载中...</Text>}
+                            scaleToFill
+                            resizable
+                          />
+                        </Button>
+                        <Text font={{ name: 'subheadline', size: 14 }} lineLimit={1}>
+                          {v.name}
+                        </Text>
+                      </VStack>
+                    ) : undefined,
+                  )}
+                </LazyVGrid>
+              )}
+              {hasMoreResult && (
+                <Button
+                  title="加载更多"
+                  systemImage="arrow.2.circlepath"
+                  buttonStyle="borderedProminent"
+                  buttonBorderShape="capsule"
+                  padding={{
+                    bottom: 10,
+                  }}
+                  action={async () => {
+                    const i = kw.trim()
+                    if (i === '') return
+                    try {
+                      setErrMsg(undefined)
+                      const nextPn = pn + 1
+                      const result = await getSearchResult(i, nextPn)
+                      setPn(nextPn)
+                      setSearchResult((pre) => [...pre, ...result.list])
+                      setHasMoreResult(result.hasMore)
+                    } catch (e) {
+                      console.error(e)
+                      setErrMsg(String(e))
+                    }
+                  }}
+                />
+              )}
+            </ScrollView>
+          )
         }}
-        scrollDismissesKeyboard={'immediately'}
-        searchable={{
-          value: kw,
-          onChanged: setKw,
-          placement: 'navigationBarDrawer',
-          prompt: '装扮名称',
-          presented: {
-            value: showSearch,
-            onChanged: (v) => {
-              if (v === false) {
-                setKw('')
-                setSearchResult([])
-                setHasMoreResult(false)
-                setErrMsg(undefined)
-              }
-              setShowSearch(v)
-            },
-          },
-        }}
-      >
-        {showSearch && (
-          <Button
-            title="搜索"
-            systemImage="magnifyingglass"
-            buttonStyle="borderedProminent"
-            buttonBorderShape="capsule"
-            action={async () => {
-              const i = kw.trim()
-              if (i === '') return
-              try {
-                setErrMsg(undefined)
-                pn = 1
-                const result = await getSearchResult(i, pn)
-                setSearchResult(result.list)
-                setHasMoreResult(result.hasMore)
-              } catch (e) {
-                console.error(e)
-                setErrMsg(String(e))
-              }
-            }}
-          />
-        )}
-        {errMsg !== undefined && <Text>{errMsg}</Text>}
-        {searchResult.length > 0 && errMsg === undefined && (
-          <LazyVGrid
-            columns={[
-              { size: { type: 'flexible', max: 'infinity' } },
-              { size: { type: 'flexible', max: 'infinity' } },
-            ]}
-            padding={10}
-          >
-            {searchResult.map((v) =>
-              v.cover ? (
-                <VStack>
-                  <Button
-                    action={() => {
-                      Navigation.present({
-                        element: <PackageView type={v.type} id={v.id} name={v.name} />,
-                      })
-                    }}
-                    buttonStyle="plain"
-                  >
-                    <Image
-                      imageUrl={v.cover + '@416w_624h.webp'}
-                      placeholder={<Text>加载中...</Text>}
-                      scaleToFill
-                      resizable
-                    />
-                  </Button>
-                  <Text font={{ name: 'subheadline', size: 14 }} lineLimit={1}>
-                    {v.name}
-                  </Text>
-                </VStack>
-              ) : undefined,
-            )}
-          </LazyVGrid>
-        )}
-        {hasMoreResult && (
-          <Button
-            title="加载更多"
-            systemImage="arrow.2.circlepath"
-            buttonStyle="borderedProminent"
-            buttonBorderShape="capsule"
-            action={async () => {
-              const i = kw.trim()
-              if (i === '') return
-              try {
-                setErrMsg(undefined)
-                pn++
-                const result = await getSearchResult(i, pn)
-                setSearchResult((pre) => [...pre, ...result.list])
-                setHasMoreResult(result.hasMore)
-              } catch (e) {
-                console.error(e)
-                setErrMsg(String(e))
-              }
-            }}
-          />
-        )}
-      </ScrollView>
+      </GeometryReader>
     </NavigationStack>
   )
 }
