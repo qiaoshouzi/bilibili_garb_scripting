@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
-    "dev": "scripting-cli start",
+    "dev": "scripting-cli start --no-auto-open",
     "format": "prettier --write src/"
   },
   "devDependencies": {
