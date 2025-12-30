@@ -12,6 +12,7 @@ import {
   NavigationStack,
   GeometryReader,
   NavigationLink,
+  useCallback,
 } from 'scripting'
 import { SearchResult, getSearchResult } from './utils/api'
 import { PackageView } from './views/PageView'
@@ -34,6 +35,24 @@ function View() {
     }
     return 2
   }
+  const handleSearch = useCallback(
+    async (isNew = false) => {
+      const i = kw.trim()
+      if (i === '') return
+      try {
+        setErrMsg(undefined)
+        const nextPn = isNew ? 1 : pn + 1
+        const result = await getSearchResult(i, nextPn)
+        setPn(nextPn)
+        setSearchResult((pre) => [...(isNew ? [] : pre), ...result.list])
+        setHasMoreResult(result.hasMore)
+      } catch (e) {
+        console.error(e)
+        setErrMsg(String(e))
+      }
+    },
+    [kw],
+  )
   return (
     <GeometryReader>
       {(proxy) => {
@@ -64,29 +83,11 @@ function View() {
                   },
                 },
               }}
+              onSubmit={{
+                triggers: 'search',
+                action: () => handleSearch(true),
+              }}
             >
-              {showSearch && (
-                <Button
-                  title="搜索"
-                  systemImage="magnifyingglass"
-                  buttonStyle="glassProminent"
-                  buttonBorderShape="capsule"
-                  action={async () => {
-                    const i = kw.trim()
-                    if (i === '') return
-                    try {
-                      setErrMsg(undefined)
-                      setPn(1)
-                      const result = await getSearchResult(i, 1)
-                      setSearchResult(result.list)
-                      setHasMoreResult(result.hasMore)
-                    } catch (e) {
-                      console.error(e)
-                      setErrMsg(String(e))
-                    }
-                  }}
-                />
-              )}
               {errMsg !== undefined && <Text>{errMsg}</Text>}
               {searchResult.length > 0 && errMsg === undefined && (
                 <LazyVGrid
@@ -128,21 +129,7 @@ function View() {
                   padding={{
                     bottom: 10,
                   }}
-                  action={async () => {
-                    const i = kw.trim()
-                    if (i === '') return
-                    try {
-                      setErrMsg(undefined)
-                      const nextPn = pn + 1
-                      const result = await getSearchResult(i, nextPn)
-                      setPn(nextPn)
-                      setSearchResult((pre) => [...pre, ...result.list])
-                      setHasMoreResult(result.hasMore)
-                    } catch (e) {
-                      console.error(e)
-                      setErrMsg(String(e))
-                    }
-                  }}
+                  action={handleSearch}
                 />
               )}
             </ScrollView>
