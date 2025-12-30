@@ -22,7 +22,9 @@ jobs:
         run: node setVersion.js ${{ github.event.inputs.version }}
 
       - name: Build
-        run: zip -9 -r Bili_Garb.zip 'scripts/Bili Garb'
+        run: |
+          cd "scripts/Bili Garb"
+          zip -9 -r ../../Bili_Garb.zip .
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
