@@ -62,7 +62,7 @@ export function PackageView({
             padding={10}
           >
             {list.map((v) => (
-              <NavigationLink destination={<ImageView data={v} />}>
+              <NavigationLink destination={<ImageView name={name} data={v} />}>
                 <Image
                   imageUrl={v.img + '@416w_624h.webp'}
                   placeholder={<Text>加载中...</Text>}

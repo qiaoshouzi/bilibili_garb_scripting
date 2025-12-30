@@ -69,7 +69,7 @@ function View() {
                 <Button
                   title="搜索"
                   systemImage="magnifyingglass"
-                  buttonStyle="borderedProminent"
+                  buttonStyle="glassProminent"
                   buttonBorderShape="capsule"
                   action={async () => {
                     const i = kw.trim()
@@ -93,7 +93,10 @@ function View() {
                   columns={Array.from<GridItem>({ length: getLength(proxy.size.width) }).fill({
                     size: { type: 'flexible', max: 'infinity' },
                   })}
-                  padding={10}
+                  padding={{
+                    horizontal: 10,
+                  }}
+                  spacing={10}
                 >
                   {searchResult.map((v) =>
                     v.cover ? (
@@ -102,7 +105,7 @@ function View() {
                           destination={<PackageView type={v.type} id={v.id} name={v.name} />}
                         >
                           <Image
-                            imageUrl={v.cover + '@416w_624h.webp'}
+                            imageUrl={v.cover + '@416w_624h_1e_1c.webp'}
                             placeholder={<Text>加载中...</Text>}
                             scaleToFill
                             resizable
@@ -120,7 +123,7 @@ function View() {
                 <Button
                   title="加载更多"
                   systemImage="arrow.2.circlepath"
-                  buttonStyle="borderedProminent"
+                  buttonStyle="glassProminent"
                   buttonBorderShape="capsule"
                   padding={{
                     bottom: 10,

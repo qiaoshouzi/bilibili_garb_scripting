@@ -46,14 +46,14 @@ function Video({ url }: { url: string }) {
   )
 }
 
-export function ImageView({ data }: { data: CardData }) {
+export function ImageView({ name, data }: { name: string; data: CardData }) {
   const [isDownloadingImage, setIsDownloadingImage] = useState(false)
   const [isDownloadingVideo, setIsDownloadingVideo] = useState(false)
   const [tabIndex, setTabIndex] = useState(0)
   return (
     <NavigationStack>
       <ScrollView
-        navigationTitle={data.name}
+        navigationTitle={data.name === 'img' ? name : data.name}
         navigationBarTitleDisplayMode={'inline'}
         // toolbar={{
         //   navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
@@ -62,7 +62,7 @@ export function ImageView({ data }: { data: CardData }) {
       >
         <HStack>
           <Button
-            buttonStyle="borderedProminent"
+            buttonStyle="glassProminent"
             buttonBorderShape="capsule"
             disabled={isDownloadingImage}
             action={async () => {
@@ -87,7 +87,7 @@ export function ImageView({ data }: { data: CardData }) {
             </HStack>
           </Button>
           <Button
-            buttonStyle="borderedProminent"
+            buttonStyle="glassProminent"
             buttonBorderShape="capsule"
             disabled={data.videos === undefined || data.videos.length === 0 || isDownloadingVideo}
             action={async () => {
@@ -116,18 +116,22 @@ export function ImageView({ data }: { data: CardData }) {
           </Button>
         </HStack>
         {data.videos !== undefined && (
-          <Picker
-            title="Showcase Type"
-            value={tabIndex}
-            onChanged={setTabIndex}
-            pickerStyle="segmented"
+          <HStack
             padding={{
               horizontal: 10,
             }}
           >
-            <Text tag={0}>图片</Text>
-            <Text tag={1}>视频</Text>
-          </Picker>
+            <Picker
+              title="Showcase Type"
+              value={tabIndex}
+              onChanged={setTabIndex}
+              pickerStyle="segmented"
+              glassEffect
+            >
+              <Text tag={0}>图片</Text>
+              <Text tag={1}>视频</Text>
+            </Picker>
+          </HStack>
         )}
         {tabIndex === 0 && (
           <Image
@@ -135,7 +139,9 @@ export function ImageView({ data }: { data: CardData }) {
             placeholder={<Text>加载中...</Text>}
             scaleToFill
             resizable
-            padding={10}
+            padding={{
+              horizontal: 10,
+            }}
           />
         )}
         {tabIndex === 1 && data.videos && <Video url={data.videos[0]} />}
