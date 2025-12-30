@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version(1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Version
+        run: node setVersion.js ${{ github.event.inputs.version }}
+
+      - name: Build
+        run: zip -9 -r Bili_Garb.zip 'scripts/Bili Garb'
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: 'v${{ github.event.inputs.version }}'
+          name: 'Release v${{ github.event.inputs.version }}'
+          files: Bili_Garb.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          BASE_URL: s3://b23-app/scripting
+        run: |
+          aws s3 cp ./Bili_Garb.zip $BASE_URL/Bili_Garb.zip --endpoint-url $ENDPOINT
