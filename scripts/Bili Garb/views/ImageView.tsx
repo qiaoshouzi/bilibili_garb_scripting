@@ -100,8 +100,12 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
                 if (!resp.ok) throw new Error(`respError:${resp.status}:${resp.statusText}`)
                 const resp_data = await resp.data()
                 await FileManager.writeAsData(filePath, resp_data)
-                await QuickLook.previewURLs([filePath])
-                await FileManager.remove(filePath)
+                const result = await Photos.saveVideo(filePath)
+                if (!result) throw new Error(`保存视频失败: result false`)
+                try {
+                  if (filePath) await FileManager.remove(filePath)
+                } catch {}
+                await Dialog.alert({ title: '保存视频成功', message: '已保存到相册' })
               } catch (e) {
                 await Dialog.alert({ title: '保存视频失败', message: String(e) })
               } finally {
