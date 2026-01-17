@@ -2,11 +2,14 @@ import {
   Button,
   GeometryReader,
   GridItem,
+  HStack,
   Image,
   LazyVGrid,
+  List,
   Navigation,
   NavigationLink,
   NavigationStack,
+  Picker,
   Script,
   ScrollView,
   Text,
@@ -14,17 +17,22 @@ import {
   useCallback,
   useState,
 } from 'scripting'
-import { SearchResult, getSearchResult } from './utils/api'
+import { SearchResult, SearchUserResult, getSearchResult, getSearchUserResult } from './utils/api'
 import { PackageView } from './views/PageView'
 
-function View() {
-  const [kw, setKw] = useState('')
-  const [showSearch, setShowSearch] = useState(false)
-  const [searchResult, setSearchResult] = useState<SearchResult[]>([])
-  const [hasMoreResult, setHasMoreResult] = useState(false)
-  const [errMsg, setErrMsg] = useState<string>()
-  const [pn, setPn] = useState(1)
-  const dismiss = Navigation.useDismiss()
+function SearchResultView({
+  hasMoreResult,
+  width,
+  searchResult,
+  handleSearch,
+  errMsg,
+}: {
+  hasMoreResult: boolean
+  width: number
+  searchResult: SearchResult[]
+  handleSearch: (isNew?: boolean) => Promise<void>
+  errMsg?: string
+}) {
   const getLength = (w: number) => {
     const breakpoints = [
       [900, 4],
@@ -35,6 +43,116 @@ function View() {
     }
     return 2
   }
+  return (
+    <ScrollView>
+      {searchResult.length > 0 && errMsg === undefined && (
+        <LazyVGrid
+          columns={Array.from<GridItem>({ length: getLength(width) }).fill({
+            size: { type: 'flexible', max: 'infinity' },
+          })}
+          padding={{
+            horizontal: 10,
+          }}
+          spacing={10}
+        >
+          {searchResult.map((v) =>
+            v.cover ? (
+              <VStack>
+                <NavigationLink destination={<PackageView type={v.type} id={v.id} name={v.name} />}>
+                  <Image
+                    imageUrl={v.cover + '@416w_624h_1e_1c.webp'}
+                    placeholder={<Text>加载中...</Text>}
+                    scaleToFill
+                    resizable
+                  />
+                </NavigationLink>
+                <Text font={{ name: 'subheadline', size: 14 }} lineLimit={1}>
+                  {v.name}
+                </Text>
+              </VStack>
+            ) : undefined,
+          )}
+        </LazyVGrid>
+      )}
+      {hasMoreResult && (
+        <Button
+          title="加载更多"
+          systemImage="arrow.2.circlepath"
+          buttonStyle="glassProminent"
+          buttonBorderShape="capsule"
+          padding={{ bottom: 10 }}
+          action={handleSearch}
+        />
+      )}
+    </ScrollView>
+  )
+}
+
+function SearchUserResultView({
+  searchUserResult,
+  hasMoreResult,
+  handleSearch,
+  errMsg,
+}: {
+  searchUserResult: SearchUserResult[]
+  hasMoreResult: boolean
+  handleSearch: (isNew?: boolean) => Promise<void>
+  errMsg?: string
+}) {
+  return (
+    <List>
+      {searchUserResult.length > 0 &&
+        errMsg === undefined &&
+        searchUserResult.map((v) => (
+          <NavigationLink
+            destination={<PackageView type="user" id={String(v.mid)} name={v.username} />}
+          >
+            <HStack
+              fixedSize={{ horizontal: false, vertical: true }}
+              frame={{ maxHeight: 'infinity' }}
+            >
+              <Image
+                imageUrl={v.avatar}
+                scaleToFit={true}
+                resizable
+                aspectRatio={{ contentMode: 'fit' }}
+                frame={{ height: 30, width: 30 }}
+                placeholder={
+                  <Image
+                    systemName="person.crop.circle" // 使用 SF Symbol
+                    resizable
+                    scaleToFit
+                  />
+                }
+              />
+              <Text>{v.username}</Text>
+            </HStack>
+          </NavigationLink>
+        ))}
+      {hasMoreResult && (
+        <HStack alignment="center">
+          <Button
+            title="加载更多"
+            systemImage="arrow.2.circlepath"
+            buttonStyle="borderless" // 在 List 中通常用 borderless 看起来更自然
+            action={handleSearch}
+          />
+        </HStack>
+      )}
+    </List>
+  )
+}
+
+function View() {
+  const [kw, setKw] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchResult, setSearchResult] = useState<SearchResult[]>([])
+  const [searchUserResult, setSearchUserResult] = useState<SearchUserResult[]>([])
+  const [hasMoreResult, setHasMoreResult] = useState(false)
+  const [errMsg, setErrMsg] = useState<string>()
+  const [pn, setPn] = useState(1)
+  const [tabIndex, setTabIndex] = useState(0)
+  const dismiss = Navigation.useDismiss()
   const handleSearch = useCallback(
     async (isNew = false) => {
       const i = kw.trim()
@@ -42,23 +160,29 @@ function View() {
       try {
         setErrMsg(undefined)
         const nextPn = isNew ? 1 : pn + 1
-        const result = await getSearchResult(i, nextPn)
+        if (tabIndex === 0) {
+          const result = await getSearchResult(i, nextPn)
+          setSearchResult((pre) => [...(isNew ? [] : pre), ...result.list])
+          setHasMoreResult(result.hasMore)
+        } else if (tabIndex === 1) {
+          const result = await getSearchUserResult(i, nextPn)
+          setSearchUserResult((pre) => [...(isNew ? [] : pre), ...result.list])
+          setHasMoreResult(result.hasMore)
+        }
         setPn(nextPn)
-        setSearchResult((pre) => [...(isNew ? [] : pre), ...result.list])
-        setHasMoreResult(result.hasMore)
       } catch (e) {
         console.error(e)
         setErrMsg(String(e))
       }
     },
-    [kw],
+    [kw, tabIndex, pn],
   )
   return (
     <GeometryReader>
       {(proxy) => {
         return (
           <NavigationStack>
-            <ScrollView
+            <VStack
               navigationTitle="哔哩装扮"
               navigationBarTitleDisplayMode={'inline'}
               toolbar={{
@@ -69,13 +193,14 @@ function View() {
                 value: kw,
                 onChanged: setKw,
                 placement: 'navigationBarDrawer',
-                prompt: '装扮名称',
+                prompt: tabIndex === 0 ? '装扮名称' : '用户名/UID',
                 presented: {
                   value: showSearch,
                   onChanged: (v) => {
                     if (v === false) {
                       setKw('')
                       setSearchResult([])
+                      setSearchUserResult([])
                       setHasMoreResult(false)
                       setErrMsg(undefined)
                     }
@@ -88,51 +213,49 @@ function View() {
                 action: () => handleSearch(true),
               }}
             >
-              {errMsg !== undefined && <Text>{errMsg}</Text>}
-              {searchResult.length > 0 && errMsg === undefined && (
-                <LazyVGrid
-                  columns={Array.from<GridItem>({ length: getLength(proxy.size.width) }).fill({
-                    size: { type: 'flexible', max: 'infinity' },
-                  })}
-                  padding={{
-                    horizontal: 10,
+              <HStack
+                padding={{
+                  horizontal: 10,
+                }}
+              >
+                <Picker
+                  title="Search Type"
+                  value={tabIndex}
+                  onChanged={(v: number) => {
+                    setKw('')
+                    setSearchResult([])
+                    setSearchUserResult([])
+                    setHasMoreResult(false)
+                    setErrMsg(undefined)
+                    setShowSearch(false)
+                    setTabIndex(v)
                   }}
-                  spacing={10}
+                  pickerStyle="segmented"
+                  glassEffect
                 >
-                  {searchResult.map((v) =>
-                    v.cover ? (
-                      <VStack>
-                        <NavigationLink
-                          destination={<PackageView type={v.type} id={v.id} name={v.name} />}
-                        >
-                          <Image
-                            imageUrl={v.cover + '@416w_624h_1e_1c.webp'}
-                            placeholder={<Text>加载中...</Text>}
-                            scaleToFill
-                            resizable
-                          />
-                        </NavigationLink>
-                        <Text font={{ name: 'subheadline', size: 14 }} lineLimit={1}>
-                          {v.name}
-                        </Text>
-                      </VStack>
-                    ) : undefined,
-                  )}
-                </LazyVGrid>
-              )}
-              {hasMoreResult && (
-                <Button
-                  title="加载更多"
-                  systemImage="arrow.2.circlepath"
-                  buttonStyle="glassProminent"
-                  buttonBorderShape="capsule"
-                  padding={{
-                    bottom: 10,
-                  }}
-                  action={handleSearch}
+                  <Text tag={0}>装扮&收藏集</Text>
+                  <Text tag={1}>充电表情包</Text>
+                </Picker>
+              </HStack>
+              {errMsg !== undefined && <Text>{errMsg}</Text>}
+              {tabIndex === 0 && (
+                <SearchResultView
+                  width={proxy.size.width}
+                  searchResult={searchResult}
+                  hasMoreResult={hasMoreResult}
+                  handleSearch={handleSearch}
+                  errMsg={errMsg}
                 />
               )}
-            </ScrollView>
+              {tabIndex === 1 && (
+                <SearchUserResultView
+                  searchUserResult={searchUserResult}
+                  handleSearch={handleSearch}
+                  hasMoreResult={hasMoreResult}
+                  errMsg={errMsg}
+                />
+              )}
+            </VStack>
           </NavigationStack>
         )
       }}

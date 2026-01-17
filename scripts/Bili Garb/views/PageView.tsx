@@ -16,6 +16,7 @@ import {
   getActBasicData,
   getGarbData,
   getItemDataA,
+  getUpEmoteData,
   handleHDSLBUrl,
   ItemData,
   SearchResult,
@@ -37,7 +38,7 @@ export function PackageView({
   id,
   name,
 }: {
-  type: SearchResult['type']
+  type: SearchResult['type'] | 'user'
   id: string
   name: string
 }) {
@@ -347,6 +348,16 @@ export function PackageView({
                 })
           }
           if (spaceBgItem.data.length > 0) tmpList.push(spaceBgItem)
+        } else if (type === 'user') {
+          setProcess([0, 1])
+          const upData = await getUpEmoteData(id)
+          if (!upData) throw new Error('获取 garbData 失败, 请检查日志')
+          else if (upData.length === 0) throw new Error('该用户无充电表情包')
+          setProcess((pre) => (pre ? [pre[0] + 1, pre[1]] : pre))
+          tmpList.push({
+            name: '充电表情包',
+            data: upData,
+          })
         } else throw new Error('package type is error')
         if (tmpList.length > 0) setList(tmpList)
         else throw new Error('结果为空')
@@ -360,7 +371,9 @@ export function PackageView({
   return (
     <NavigationStack navigationTitle={title} navigationBarTitleDisplayMode={'inline'}>
       {errMsg !== undefined && <Text>{errMsg}</Text>}
-      {list.length === 0 && <Text>{`加载中 ${process && `(${process[0]}/${process[1]})`}`}</Text>}
+      {list.length === 0 && errMsg === undefined && (
+        <Text>{`加载中 ${process && `(${process[0]}/${process[1]})`}`}</Text>
+      )}
       {list.length > 0 && (
         <List>
           {list.map((v) => (
