@@ -62,7 +62,7 @@ function View() {
               navigationTitle="哔哩装扮"
               navigationBarTitleDisplayMode={'inline'}
               toolbar={{
-                cancellationAction: <Button title="完成" action={dismiss} />,
+                cancellationAction: <Button title="关闭" action={dismiss} />,
               }}
               scrollDismissesKeyboard={'immediately'}
               searchable={{
@@ -142,6 +142,7 @@ function View() {
 
 async function run() {
   await Navigation.present({
+    modalPresentationStyle: 'fullScreen',
     element: <View />,
   })
 

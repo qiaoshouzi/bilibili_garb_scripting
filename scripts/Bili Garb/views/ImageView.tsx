@@ -17,7 +17,7 @@ import {
 import { CardData } from '../utils/api'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 
-function Video({ url }: { url: string }) {
+export function Video({ url, showcase }: { url: string; showcase?: boolean }) {
   const [errMsg, setErrMsg] = useState<string>()
 
   const player = useMemo(() => {
@@ -41,7 +41,12 @@ function Video({ url }: { url: string }) {
   return (
     <VStack>
       {errMsg !== undefined && <Text>{errMsg}</Text>}
-      <VideoPlayer player={player} scaleToFill />
+      <VideoPlayer
+        player={player}
+        scaleToFill={showcase !== true}
+        scaleToFit={showcase === true}
+        allowsHitTesting={false}
+      />
     </VStack>
   )
 }
@@ -49,11 +54,11 @@ function Video({ url }: { url: string }) {
 export function ImageView({ name, data }: { name: string; data: CardData }) {
   const [isDownloadingImage, setIsDownloadingImage] = useState(false)
   const [isDownloadingVideo, setIsDownloadingVideo] = useState(false)
-  const [tabIndex, setTabIndex] = useState(0)
+  const [tabIndex, setTabIndex] = useState(data.img ? 0 : 1)
   return (
     <NavigationStack>
       <ScrollView
-        navigationTitle={data.name === 'img' ? name : data.name}
+        navigationTitle={name}
         navigationBarTitleDisplayMode={'inline'}
         // toolbar={{
         //   navigation: <Button systemImage="chevron.left" title="返回" action={dismiss} />,
@@ -64,8 +69,9 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
           <Button
             buttonStyle="glassProminent"
             buttonBorderShape="capsule"
-            disabled={isDownloadingImage}
+            disabled={data.img === undefined || isDownloadingImage}
             action={async () => {
+              if (!data.img) return
               setIsDownloadingImage(true)
               try {
                 const resp = await fetch(data.img)
@@ -119,7 +125,7 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
             </HStack>
           </Button>
         </HStack>
-        {data.videos !== undefined && (
+        {data.img !== undefined && data.videos !== undefined && (
           <HStack
             padding={{
               horizontal: 10,
@@ -137,9 +143,9 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
             </Picker>
           </HStack>
         )}
-        {tabIndex === 0 && (
+        {tabIndex === 0 && data.img !== undefined && (
           <Image
-            imageUrl={data.img + '@832w_1248h.webp'}
+            imageUrl={data.img}
             placeholder={<Text>加载中...</Text>}
             scaleToFill
             resizable
