@@ -1,13 +1,12 @@
 import {
-  useState,
-  useEffect,
-  NavigationStack,
-  ScrollView,
-  Text,
-  List,
   HStack,
   Image,
+  List,
   NavigationLink,
+  NavigationStack,
+  Text,
+  useEffect,
+  useState,
 } from 'scripting'
 import {
   ActAssetsData,

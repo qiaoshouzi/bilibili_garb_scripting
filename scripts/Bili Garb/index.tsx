@@ -1,18 +1,18 @@
 import {
-  Text,
-  Image,
-  VStack,
-  Script,
   Button,
-  GridItem,
-  useState,
-  LazyVGrid,
-  ScrollView,
-  Navigation,
-  NavigationStack,
   GeometryReader,
+  GridItem,
+  Image,
+  LazyVGrid,
+  Navigation,
   NavigationLink,
+  NavigationStack,
+  Script,
+  ScrollView,
+  Text,
+  VStack,
   useCallback,
+  useState,
 } from 'scripting'
 import { SearchResult, getSearchResult } from './utils/api'
 import { PackageView } from './views/PageView'

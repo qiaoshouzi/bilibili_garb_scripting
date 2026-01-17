@@ -1,7 +1,6 @@
-import { Image, useState } from 'scripting'
+import { Image } from 'scripting'
 
 export function Showcase({ type, url }: { type: 'video' | 'image'; url: string }) {
-  const [test, setTest] = useState(0)
   if (type === 'image')
     return (
       <Image

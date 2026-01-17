@@ -1,21 +1,21 @@
 import {
-  Path,
-  Text,
-  fetch,
-  Image,
   Button,
+  fetch,
   HStack,
-  useState,
-  ScrollView,
+  Image,
   NavigationStack,
-  useMemo,
-  useEffect,
-  VStack,
-  VideoPlayer,
+  Path,
   Picker,
+  ScrollView,
+  Text,
+  useEffect,
+  useMemo,
+  useState,
+  VideoPlayer,
+  VStack,
 } from 'scripting'
-import { CardData } from '../utils/api'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { CardData } from '../utils/api'
 
 export function Video({ url, showcase }: { url: string; showcase?: boolean }) {
   const [errMsg, setErrMsg] = useState<string>()
