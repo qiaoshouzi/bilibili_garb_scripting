@@ -15,6 +15,7 @@ export type CardData = {
 export type ItemData = {
   name: string
   showExample?: boolean
+  disabled?: boolean
   data: CardData[]
 }
 
@@ -315,6 +316,61 @@ export const getUpEmoteData = async (mid: string | number): Promise<CardData[] |
     return null
   }
 }
+export type LiveEmoteData = {
+  code: number
+  data?: {
+    data?: {
+      pkg_name?: string
+      pkg_type?: number
+      emoticons?: {
+        emoji?: string
+        url?: string
+      }[]
+    }[]
+  }
+}
+export const getLiveEmoteData = async (
+  rid: string | number,
+  cookie: string,
+): Promise<ItemData[] | null> => {
+  console.log(cookie)
+  try {
+    const resp = await fetch(
+      `https://api.live.bilibili.com/xlive/web-ucenter/v2/emoticon/GetEmoticons?platform=pc&room_id=${rid}`,
+      {
+        headers: {
+          'User-Agent': UA,
+          Referer: 'https://live.bilibili.com/',
+          Cookie: cookie,
+        },
+      },
+    )
+    const resp_json = (await resp.json()) as LiveEmoteData
+    if (resp_json.code === 0 && Array.isArray(resp_json.data?.data)) {
+      const list: ItemData[] = []
+      for (const i of resp_json.data.data) {
+        if (i.pkg_type !== 2 || !Array.isArray(i.emoticons)) continue
+        const itemData: ItemData = {
+          name: i.pkg_name || '直播间专属表情包',
+          showExample: true,
+          data: [],
+        }
+        for (const ii of i.emoticons) {
+          if (typeof ii.url !== 'string') continue
+          itemData.data.push({
+            name: ii.emoji || undefined,
+            img: handleHDSLBUrl(ii.url.replace('http://', 'https://')),
+          })
+        }
+        if (itemData.data.length > 0) list.push(itemData)
+      }
+      return list
+    } else throw new Error(JSON.stringify(resp_json))
+  } catch (e: any) {
+    console.error(`getLiveEmoteData:fail:${rid}`, String(e))
+    return null
+  }
+}
 
 export const getBiliCookie = async (force = false) => {
   try {
@@ -418,6 +474,7 @@ export type SearchUserData = {
           mid: number
           uname: string
           upic: string
+          room_id: number
         }[]
       }
 }
@@ -425,6 +482,7 @@ export type SearchUserResult = {
   mid: number
   username: string
   avatar: string
+  rid: number
 }
 export const getSearchUserResult = async (
   keyword: string,
@@ -463,6 +521,7 @@ export const getSearchUserResult = async (
           mid: v.mid,
           username: v.uname,
           avatar,
+          rid: v.room_id,
         }
       }),
       hasMore: resp_json.data.numPages > resp_json.data.page,
@@ -470,4 +529,81 @@ export const getSearchUserResult = async (
     }
   }
   throw new Error('getSearchUserResult Fail 出现未知错误')
+}
+
+export type LoginInfo = {
+  url: string
+  key: string
+}
+export const getLoginInfo = async (): Promise<LoginInfo | null> => {
+  try {
+    const resp = await fetch('https://passport.bilibili.com/x/passport-login/web/qrcode/generate', {
+      headers: {
+        'User-Agent': UA,
+        Referer: 'https://search.bilibili.com/',
+      },
+    })
+    const resp_json = (await resp.json()) as {
+      code: number
+      data?: {
+        url: string
+        qrcode_key: string
+      }
+    }
+    if (typeof resp_json?.data?.url === 'string' && typeof resp_json.data.qrcode_key === 'string')
+      return {
+        url: resp_json.data.url,
+        key: resp_json.data.qrcode_key,
+      }
+    else throw new Error(JSON.stringify(resp_json))
+  } catch (e) {
+    console.error('getLoginUrl:fail', String(e))
+  }
+  return null
+}
+export type LoginResult =
+  | {
+      code: 86038 | 86090 | 86101
+      message: string
+    }
+  | {
+      code: 0
+      cookie: string
+    }
+export const getLoginResult = async (key: string): Promise<LoginResult | null> => {
+  try {
+    const resp = await fetch(
+      'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key=' + key,
+      {
+        headers: {
+          'User-Agent': UA,
+          Referer: 'https://search.bilibili.com/',
+        },
+      },
+    )
+    const resp_json = (await resp.json()) as {
+      code: number
+      data?: {
+        code: 0 | 86038 | 86090 | 86101
+        message: string
+      }
+    }
+    if (typeof resp_json?.data?.code === 'number') {
+      if (resp_json.data.code !== 0)
+        return {
+          code: resp_json.data.code,
+          message: resp_json.data.message,
+        }
+      else {
+        const cookie = resp.cookies.map((v) => `${v.name}=${v.value}`).join('; ')
+        return {
+          code: resp_json.data.code,
+          cookie,
+        }
+      }
+    } else throw new Error(JSON.stringify(resp_json))
+  } catch (e) {
+    console.error('getLoginUrl:fail', String(e))
+  }
+  return null
 }

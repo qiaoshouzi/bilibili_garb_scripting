@@ -8,6 +8,7 @@ import {
   useEffect,
   useState,
 } from 'scripting'
+import MenuButton from '../components/MenuButton'
 import {
   ActAssetsData,
   ActCollectorMedalInfo,
@@ -16,6 +17,7 @@ import {
   getActBasicData,
   getGarbData,
   getItemDataA,
+  getLiveEmoteData,
   getUpEmoteData,
   handleHDSLBUrl,
   ItemData,
@@ -37,11 +39,22 @@ export function PackageView({
   type,
   id,
   name,
+  logged,
+  setLogged,
 }: {
-  type: SearchResult['type'] | 'user'
-  id: string
   name: string
-}) {
+  logged: boolean
+  setLogged: (v: boolean) => any
+} & (
+  | {
+      type: SearchResult['type']
+      id: string
+    }
+  | {
+      type: 'user'
+      id: [string, string]
+    }
+)) {
   const [title, setTitle] = useState(name)
   const [list, setList] = useState<ItemData[]>([])
   const [errMsg, setErrMsg] = useState<string>()
@@ -349,15 +362,49 @@ export function PackageView({
           }
           if (spaceBgItem.data.length > 0) tmpList.push(spaceBgItem)
         } else if (type === 'user') {
-          setProcess([0, 1])
-          const upData = await getUpEmoteData(id)
+          setProcess([0, 2])
+          const upData = await getUpEmoteData(id[0])
           if (!upData) throw new Error('获取 garbData 失败, 请检查日志')
-          else if (upData.length === 0) throw new Error('该用户无充电表情包')
           setProcess((pre) => (pre ? [pre[0] + 1, pre[1]] : pre))
-          tmpList.push({
-            name: '充电表情包',
-            data: upData,
-          })
+          if (upData.length === 0)
+            tmpList.push({
+              name: '该用户无充电表情包',
+              disabled: true,
+              data: [],
+            })
+          else
+            tmpList.push({
+              name: '充电表情包',
+              showExample: true,
+              data: upData,
+            })
+          const cookie = Keychain.get('bili_cookie_secret')
+          if (!cookie) {
+            setProcess((pre) => (pre ? [pre[0] + 1, pre[1]] : pre))
+            tmpList.push({
+              name: '直播间专属表情包(需要在右上角登陆后查看)',
+              disabled: true,
+              data: [],
+            })
+          } else {
+            if (!id[1] || id[1] === '0')
+              tmpList.push({
+                name: '该用户无直播间专属表情包',
+                disabled: true,
+                data: [],
+              })
+            else {
+              const liveEmoteData = await getLiveEmoteData(id[1], cookie)
+              if (!liveEmoteData) throw new Error('获取 liveEmoteData 失败, 请检查日志')
+              if (liveEmoteData.length === 0)
+                tmpList.push({
+                  name: '该用户无直播间专属表情包',
+                  disabled: true,
+                  data: [],
+                })
+              else tmpList.push(...liveEmoteData)
+            }
+          }
         } else throw new Error('package type is error')
         if (tmpList.length > 0) setList(tmpList)
         else throw new Error('结果为空')
@@ -367,9 +414,15 @@ export function PackageView({
       }
     }
     main()
-  }, [])
+  }, [logged])
   return (
-    <NavigationStack navigationTitle={title} navigationBarTitleDisplayMode={'inline'}>
+    <NavigationStack
+      navigationTitle={title}
+      navigationBarTitleDisplayMode={'inline'}
+      toolbar={{
+        confirmationAction: <MenuButton logged={logged} setLogged={setLogged} />,
+      }}
+    >
       {errMsg !== undefined && <Text>{errMsg}</Text>}
       {list.length === 0 && errMsg === undefined && (
         <Text>{`加载中 ${process && `(${process[0]}/${process[1]})`}`}</Text>
@@ -377,7 +430,7 @@ export function PackageView({
       {list.length > 0 && (
         <List>
           {list.map((v) => (
-            <NavigationLink destination={<ItemView data={v} />}>
+            <NavigationLink destination={<ItemView data={v} />} disabled={v.disabled}>
               <HStack
                 fixedSize={{ horizontal: false, vertical: true }}
                 frame={{ maxHeight: 'infinity' }}

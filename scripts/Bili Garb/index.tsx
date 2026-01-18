@@ -17,6 +17,7 @@ import {
   useCallback,
   useState,
 } from 'scripting'
+import MenuButton from './components/MenuButton'
 import { SearchResult, SearchUserResult, getSearchResult, getSearchUserResult } from './utils/api'
 import { PackageView } from './views/PageView'
 
@@ -26,12 +27,16 @@ function SearchResultView({
   searchResult,
   handleSearch,
   errMsg,
+  logged,
+  setLogged,
 }: {
   hasMoreResult: boolean
   width: number
   searchResult: SearchResult[]
   handleSearch: (isNew?: boolean) => Promise<void>
   errMsg?: string
+  logged: boolean
+  setLogged: (v: boolean) => any
 }) {
   const getLength = (w: number) => {
     const breakpoints = [
@@ -58,7 +63,17 @@ function SearchResultView({
           {searchResult.map((v) =>
             v.cover ? (
               <VStack>
-                <NavigationLink destination={<PackageView type={v.type} id={v.id} name={v.name} />}>
+                <NavigationLink
+                  destination={
+                    <PackageView
+                      type={v.type}
+                      id={v.id}
+                      name={v.name}
+                      logged={logged}
+                      setLogged={setLogged}
+                    />
+                  }
+                >
                   <Image
                     imageUrl={v.cover + '@416w_624h_1e_1c.webp'}
                     placeholder={<Text>加载中...</Text>}
@@ -93,11 +108,15 @@ function SearchUserResultView({
   hasMoreResult,
   handleSearch,
   errMsg,
+  logged,
+  setLogged,
 }: {
   searchUserResult: SearchUserResult[]
   hasMoreResult: boolean
   handleSearch: (isNew?: boolean) => Promise<void>
   errMsg?: string
+  logged: boolean
+  setLogged: (v: boolean) => any
 }) {
   return (
     <List>
@@ -105,7 +124,15 @@ function SearchUserResultView({
         errMsg === undefined &&
         searchUserResult.map((v) => (
           <NavigationLink
-            destination={<PackageView type="user" id={String(v.mid)} name={v.username} />}
+            destination={
+              <PackageView
+                type="user"
+                id={[String(v.mid), String(v.rid)]}
+                name={v.username}
+                logged={logged}
+                setLogged={setLogged}
+              />
+            }
           >
             <HStack
               fixedSize={{ horizontal: false, vertical: true }}
@@ -152,6 +179,7 @@ function View() {
   const [errMsg, setErrMsg] = useState<string>()
   const [pn, setPn] = useState(1)
   const [tabIndex, setTabIndex] = useState(0)
+  const [logged, setLogged] = useState(Keychain.contains('bili_cookie_secret'))
   const dismiss = Navigation.useDismiss()
   const handleSearch = useCallback(
     async (isNew = false) => {
@@ -186,6 +214,7 @@ function View() {
               navigationTitle="哔哩装扮"
               navigationBarTitleDisplayMode={'inline'}
               toolbar={{
+                confirmationAction: <MenuButton logged={logged} setLogged={setLogged} />,
                 cancellationAction: <Button title="关闭" action={dismiss} />,
               }}
               scrollDismissesKeyboard={'immediately'}
@@ -245,6 +274,8 @@ function View() {
                   hasMoreResult={hasMoreResult}
                   handleSearch={handleSearch}
                   errMsg={errMsg}
+                  logged={logged}
+                  setLogged={setLogged}
                 />
               )}
               {tabIndex === 1 && (
@@ -253,6 +284,8 @@ function View() {
                   handleSearch={handleSearch}
                   hasMoreResult={hasMoreResult}
                   errMsg={errMsg}
+                  logged={logged}
+                  setLogged={setLogged}
                 />
               )}
             </VStack>
