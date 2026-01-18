@@ -220,22 +220,40 @@ export function PackageView({
                   }
                 } else if (t === 15) {
                   // 动态表情包
-                  const emoji = itemData?.data?.suit_items?.emoji
-                  if (!Array.isArray(emoji)) continue
+                  // properties.item_emoji_list
                   if (!tmpChildItem)
                     tmpChildItem = {
                       name: '动态表情包',
                       data: [],
                     }
                   tmpChildItem.showExample = true
-                  for (const i of emoji) {
-                    const resultName = i?.name?.replace(/\[[^_]+_(.*?)\]/g, '$1') ?? undefined
-                    const img = i?.properties?.image_gif ?? i?.properties?.img
-                    if (typeof img !== 'string') continue
-                    tmpChildItem.data.push({
-                      name: resultName,
-                      img: handleHDSLBUrl(img),
-                    })
+                  if (typeof itemData?.data?.properties?.item_emoji_list === 'string') {
+                    const itemEmojiList = JSON.parse(itemData.data.properties.item_emoji_list) as {
+                      name: string
+                      image_gif: string
+                    }[]
+                    for (const i of itemEmojiList) {
+                      const resultName = i?.name?.replace(/\[[^_]+_(.*?)\]/g, '$1') ?? undefined
+                      const img = handleHDSLBUrl(i.image_gif)
+                      tmpChildItem.data.push({
+                        name: resultName,
+                        img: handleHDSLBUrl(img),
+                      })
+                    }
+                  }
+                  if (tmpChildItem.data.length === 0) {
+                    const emoji = itemData?.data?.suit_items?.emoji
+                    if (!Array.isArray(emoji)) continue
+                    for (const i of emoji) {
+                      const resultName = i?.name?.replace(/\[[^_]+_(.*?)\]/g, '$1') ?? undefined
+                      const img =
+                        i?.properties?.image_gif ?? i?.properties?.img ?? i?.properties?.image
+                      if (typeof img !== 'string') continue
+                      tmpChildItem.data.push({
+                        name: resultName,
+                        img: handleHDSLBUrl(img),
+                      })
+                    }
                   }
                 }
               }
