@@ -189,10 +189,18 @@ function View() {
         setErrMsg(undefined)
         const nextPn = isNew ? 1 : pn + 1
         if (tabIndex === 0) {
+          if (isNew) {
+            setSearchResult([])
+            setHasMoreResult(false)
+          }
           const result = await getSearchResult(i, nextPn)
           setSearchResult((pre) => [...(isNew ? [] : pre), ...result.list])
           setHasMoreResult(result.hasMore)
         } else if (tabIndex === 1) {
+          if (isNew) {
+            setSearchUserResult([])
+            setHasMoreResult(false)
+          }
           const result = await getSearchUserResult(i, nextPn)
           setSearchUserResult((pre) => [...(isNew ? [] : pre), ...result.list])
           setHasMoreResult(result.hasMore)
