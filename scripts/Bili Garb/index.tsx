@@ -29,6 +29,7 @@ function SearchResultView({
   errMsg,
   logged,
   setLogged,
+  loading,
 }: {
   hasMoreResult: boolean
   width: number
@@ -37,6 +38,7 @@ function SearchResultView({
   errMsg?: string
   logged: boolean
   setLogged: (v: boolean) => any
+  loading?: boolean
 }) {
   const getLength = (w: number) => {
     const breakpoints = [
@@ -50,6 +52,7 @@ function SearchResultView({
   }
   return (
     <ScrollView>
+      {loading && searchResult.length === 0 && <Text>加载中~</Text>}
       {searchResult.length > 0 && errMsg === undefined && (
         <LazyVGrid
           columns={Array.from<GridItem>({ length: getLength(width) }).fill({
@@ -91,12 +94,13 @@ function SearchResultView({
       )}
       {hasMoreResult && (
         <Button
-          title="加载更多"
+          title={loading ? '加载中~' : '加载更多'}
           systemImage="arrow.2.circlepath"
           buttonStyle="glassProminent"
           buttonBorderShape="capsule"
           padding={{ bottom: 10 }}
           action={handleSearch}
+          disabled={loading}
         />
       )}
     </ScrollView>
@@ -110,6 +114,7 @@ function SearchUserResultView({
   errMsg,
   logged,
   setLogged,
+  loading,
 }: {
   searchUserResult: SearchUserResult[]
   hasMoreResult: boolean
@@ -117,9 +122,11 @@ function SearchUserResultView({
   errMsg?: string
   logged: boolean
   setLogged: (v: boolean) => any
+  loading?: boolean
 }) {
   return (
     <List>
+      {loading && searchUserResult.length === 0 && <Text>加载中~</Text>}
       {searchUserResult.length > 0 &&
         errMsg === undefined &&
         searchUserResult.map((v) => (
@@ -159,10 +166,11 @@ function SearchUserResultView({
       {hasMoreResult && (
         <HStack alignment="center">
           <Button
-            title="加载更多"
+            title={loading ? '加载中~' : '加载更多'}
             systemImage="arrow.2.circlepath"
-            buttonStyle="borderless" // 在 List 中通常用 borderless 看起来更自然
+            // buttonStyle="borderless"
             action={handleSearch}
+            disabled={loading}
           />
         </HStack>
       )}
@@ -180,6 +188,7 @@ function View() {
   const [pn, setPn] = useState(1)
   const [tabIndex, setTabIndex] = useState(0)
   const [logged, setLogged] = useState(Keychain.contains('bili_cookie_secret'))
+  const [loading, setLoading] = useState(false)
   const dismiss = Navigation.useDismiss()
   const handleSearch = useCallback(
     async (isNew = false) => {
@@ -187,6 +196,7 @@ function View() {
       if (i === '') return
       try {
         setErrMsg(undefined)
+        setLoading(true)
         const nextPn = isNew ? 1 : pn + 1
         if (tabIndex === 0) {
           if (isNew) {
@@ -209,6 +219,8 @@ function View() {
       } catch (e) {
         console.error(e)
         setErrMsg(String(e))
+      } finally {
+        setLoading(false)
       }
     },
     [kw, tabIndex, pn],
@@ -284,6 +296,7 @@ function View() {
                   errMsg={errMsg}
                   logged={logged}
                   setLogged={setLogged}
+                  loading={loading}
                 />
               )}
               {tabIndex === 1 && (
@@ -294,6 +307,7 @@ function View() {
                   errMsg={errMsg}
                   logged={logged}
                   setLogged={setLogged}
+                  loading={loading}
                 />
               )}
             </VStack>

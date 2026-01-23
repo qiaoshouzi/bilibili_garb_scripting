@@ -1,4 +1,4 @@
-import { Button, Menu, Navigation } from 'scripting'
+import { Button, Divider, Menu, Navigation } from 'scripting'
 import { LoginView } from '../views/LoginView'
 
 export default function MenuButton({
@@ -9,7 +9,9 @@ export default function MenuButton({
   setLogged?: (v: boolean) => any
 }) {
   return (
-    <Menu title={'Setting'} systemImage={'ellipsis'}>
+    <Menu title="更多">
+      <Button title="前往官网" action={() => Safari.present('https://b23.cfm.moe', false)} />
+      <Divider />
       <Button
         title={logged ? '退出登陆' : '登陆'}
         role={logged ? 'destructive' : 'confirm'}
