@@ -1,7 +1,6 @@
 import {
   Button,
   GeometryReader,
-  GridItem,
   HStack,
   Image,
   LazyVGrid,
@@ -18,6 +17,7 @@ import {
   useState,
 } from 'scripting'
 import MenuButton from './components/MenuButton'
+import { getGridItem } from './utils'
 import { SearchResult, SearchUserResult, getSearchResult, getSearchUserResult } from './utils/api'
 import { PackageView } from './views/PageView'
 
@@ -40,24 +40,12 @@ function SearchResultView({
   setLogged: (v: boolean) => any
   loading?: boolean
 }) {
-  const getLength = (w: number) => {
-    const breakpoints = [
-      [900, 4],
-      [500, 3],
-    ]
-    for (const [minWidth, value] of breakpoints) {
-      if (w >= minWidth) return value
-    }
-    return 2
-  }
   return (
     <ScrollView>
       {loading && searchResult.length === 0 && <Text>加载中~</Text>}
       {searchResult.length > 0 && errMsg === undefined && (
         <LazyVGrid
-          columns={Array.from<GridItem>({ length: getLength(width) }).fill({
-            size: { type: 'flexible', max: 'infinity' },
-          })}
+          columns={getGridItem(width)}
           padding={{
             horizontal: 10,
           }}
@@ -74,6 +62,7 @@ function SearchResultView({
                       name={v.name}
                       logged={logged}
                       setLogged={setLogged}
+                      width={width}
                     />
                   }
                 >
@@ -115,6 +104,7 @@ function SearchUserResultView({
   logged,
   setLogged,
   loading,
+  width,
 }: {
   searchUserResult: SearchUserResult[]
   hasMoreResult: boolean
@@ -123,6 +113,7 @@ function SearchUserResultView({
   logged: boolean
   setLogged: (v: boolean) => any
   loading?: boolean
+  width: number
 }) {
   return (
     <List>
@@ -138,6 +129,7 @@ function SearchUserResultView({
                 name={v.username}
                 logged={logged}
                 setLogged={setLogged}
+                width={width}
               />
             }
           >
@@ -308,6 +300,7 @@ function View() {
                   logged={logged}
                   setLogged={setLogged}
                   loading={loading}
+                  width={proxy.size.width}
                 />
               )}
             </VStack>

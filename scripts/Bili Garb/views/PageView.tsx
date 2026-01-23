@@ -41,10 +41,12 @@ export function PackageView({
   name,
   logged,
   setLogged,
+  width,
 }: {
   name: string
   logged: boolean
   setLogged: (v: boolean) => any
+  width: number
 } & (
   | {
       type: SearchResult['type']
@@ -448,7 +450,7 @@ export function PackageView({
       {list.length > 0 && (
         <List>
           {list.map((v) => (
-            <NavigationLink destination={<ItemView data={v} />} disabled={v.disabled}>
+            <NavigationLink destination={<ItemView data={v} width={width} />} disabled={v.disabled}>
               <HStack
                 fixedSize={{ horizontal: false, vertical: true }}
                 frame={{ maxHeight: 'infinity' }}

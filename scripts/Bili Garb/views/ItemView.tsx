@@ -1,8 +1,9 @@
 import { Image, LazyVGrid, NavigationLink, NavigationStack, ScrollView, Text } from 'scripting'
 import { ItemData } from '../utils/api'
 import { ImageView, Video } from './ImageView'
+import { getGridItem } from '../utils'
 
-export function ItemView({ data }: { data: ItemData }) {
+export function ItemView({ data, width }: { data: ItemData; width: number }) {
   return (
     <NavigationStack>
       <ScrollView
@@ -13,14 +14,7 @@ export function ItemView({ data }: { data: ItemData }) {
         // }}
         scrollDismissesKeyboard={'immediately'}
       >
-        <LazyVGrid
-          columns={[
-            { size: { type: 'flexible', max: 'infinity' } },
-            { size: { type: 'flexible', max: 'infinity' } },
-            { size: { type: 'flexible', max: 'infinity' } },
-          ]}
-          padding={10}
-        >
+        <LazyVGrid columns={getGridItem(width)} padding={10}>
           {data.data.map((v) => (
             <NavigationLink destination={<ImageView name={v.name || data.name} data={v} />}>
               {v.img ? (
