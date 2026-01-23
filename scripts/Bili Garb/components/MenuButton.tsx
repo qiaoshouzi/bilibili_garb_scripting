@@ -15,10 +15,18 @@ export default function MenuButton({
       <Button
         title={logged ? '退出登陆' : '登陆'}
         role={logged ? 'destructive' : 'confirm'}
-        action={() => {
+        action={async () => {
           if (logged) {
-            Keychain.remove('bili_cookie_secret')
-            setLogged?.(false)
+            const index = await Dialog.actionSheet({
+              title: '退出登陆',
+              message: '确定要退出登陆吗？',
+              cancelButton: false,
+              actions: [{ label: '取消' }, { label: '退出登陆', destructive: true }],
+            })
+            if (index === 1) {
+              Keychain.remove('bili_cookie_secret')
+              setLogged?.(false)
+            }
           } else
             Navigation.present({
               element: <LoginView setLogged={setLogged} />,
