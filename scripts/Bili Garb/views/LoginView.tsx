@@ -1,16 +1,19 @@
 import {
   Button,
   HStack,
+  Image,
   List,
   Navigation,
   NavigationStack,
   Spacer,
+  SVG,
   Text,
   useEffect,
   useState,
 } from 'scripting'
 import { sleep } from '../utils'
 import { getLoginInfo, getLoginResult, LoginInfo } from '../utils/api'
+import qrcode from '../lib/qrcode/index'
 
 type State = 'waiting' | 'waitingConfirm' | 'success' | 'expired' | 'logged'
 const getStateText = (state?: State) => {
@@ -18,7 +21,7 @@ const getStateText = (state?: State) => {
     case undefined:
       return '获取登陆信息中~'
     case 'waiting':
-      return '等待打开APP'
+      return Device.isiOSAppOnMac ? '等待扫描二维码' : '等待打开APP'
     case 'waitingConfirm':
       return '等待确认'
     case 'success':
@@ -36,6 +39,7 @@ export function LoginView({ setLogged }: { setLogged?: (state: boolean) => any }
   const [state, setState] = useState<State>()
   const [errMsg, setErrMsg] = useState<string>()
   const [loginInfo, setLoginInfo] = useState<LoginInfo>()
+  const [qrcodeSvg, setQRCodeSVG] = useState<string>()
   const dismiss = Navigation.useDismiss()
   const jump = (url: string) => Safari.openURL('bilibili://browser/?url=' + encodeURIComponent(url))
 
@@ -55,7 +59,13 @@ export function LoginView({ setLogged }: { setLogged?: (state: boolean) => any }
         return
       }
       setLoginInfo(loginInfo)
-      await jump(loginInfo.url)
+
+      if (Device.isiOSAppOnMac) {
+        const svg = new qrcode(loginInfo.url).svg()
+        setQRCodeSVG(svg)
+      } else {
+        await jump(loginInfo.url)
+      }
 
       let errCount = 0
       let init = false
@@ -102,6 +112,13 @@ export function LoginView({ setLogged }: { setLogged?: (state: boolean) => any }
           cancellationAction: <Button title="关闭" action={dismiss} />,
         }}
       >
+        {qrcodeSvg !== undefined && (
+          <HStack>
+            <Spacer />
+            <SVG code={qrcodeSvg} />
+            <Spacer />
+          </HStack>
+        )}
         <HStack>
           <Text>登陆状态</Text>
           <Spacer />
@@ -112,16 +129,18 @@ export function LoginView({ setLogged }: { setLogged?: (state: boolean) => any }
           <Spacer />
           <Text>{errMsg ?? '无错误'}</Text>
         </HStack>
-        <Button
-          title="跳转登陆"
-          buttonStyle="borderless"
-          disabled={
-            !loginInfo ||
-            errMsg !== undefined ||
-            (state !== 'waitingConfirm' && state !== 'waiting')
-          }
-          action={() => loginInfo && jump(loginInfo.url)}
-        />
+        {!Device.isiOSAppOnMac && (
+          <Button
+            title="跳转登陆"
+            buttonStyle="borderless"
+            disabled={
+              !loginInfo ||
+              errMsg !== undefined ||
+              (state !== 'waitingConfirm' && state !== 'waiting')
+            }
+            action={() => loginInfo && jump(loginInfo.url)}
+          />
+        )}
       </List>
     </NavigationStack>
   )
