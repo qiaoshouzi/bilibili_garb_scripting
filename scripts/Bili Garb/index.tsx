@@ -280,6 +280,7 @@ function View() {
                   }}
                   pickerStyle="segmented"
                   glassEffect
+                  frame={{ maxWidth: 500 }}
                 >
                   <Text tag={0}>装扮&收藏集</Text>
                   <Text tag={1}>充电表情包</Text>

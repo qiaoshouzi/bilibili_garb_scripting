@@ -65,7 +65,7 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
         // }}
         scrollDismissesKeyboard={'immediately'}
       >
-        <HStack>
+        <HStack frame={{ maxWidth: 'infinity' }}>
           <Button
             buttonStyle="glassProminent"
             buttonBorderShape="capsule"
@@ -127,6 +127,7 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
         </HStack>
         {data.img !== undefined && data.videos !== undefined && (
           <HStack
+            frame={{ maxWidth: 300 }}
             padding={{
               horizontal: 10,
             }}
@@ -148,6 +149,7 @@ export function ImageView({ name, data }: { name: string; data: CardData }) {
             imageUrl={data.img}
             placeholder={<Text>加载中...</Text>}
             scaleToFill
+            frame={{ maxWidth: 700 }}
             resizable
             padding={{
               horizontal: 10,
