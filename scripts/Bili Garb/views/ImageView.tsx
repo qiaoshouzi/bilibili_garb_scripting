@@ -19,8 +19,9 @@ import { CardData } from '../utils/api'
 
 export function Video({ url, showcase }: { url: string; showcase?: boolean }) {
   const [errMsg, setErrMsg] = useState<string>()
+  const [player, setPlayer] = useState<AVPlayer>()
 
-  const player = useMemo(() => {
+  useEffect(() => {
     const player = new AVPlayer()
     player.setSource(url)
     // player.onTimeControlStatusChanged = setStatus
@@ -29,10 +30,7 @@ export function Video({ url, showcase }: { url: string; showcase?: boolean }) {
     player.onError = (e) => setErrMsg(e)
     SharedAudioSession.setActive(true)
     SharedAudioSession.setCategory('playback', ['mixWithOthers'])
-    return player
-  }, [])
-
-  useEffect(() => {
+    setPlayer(player)
     return () => {
       player.dispose()
     }
@@ -41,12 +39,14 @@ export function Video({ url, showcase }: { url: string; showcase?: boolean }) {
   return (
     <VStack>
       {errMsg !== undefined && <Text>{errMsg}</Text>}
-      <VideoPlayer
-        player={player}
-        scaleToFill={showcase !== true}
-        scaleToFit={showcase === true}
-        allowsHitTesting={false}
-      />
+      {player && (
+        <VideoPlayer
+          player={player}
+          scaleToFill={showcase !== true}
+          scaleToFit={showcase === true}
+          allowsHitTesting={false}
+        />
+      )}
     </VStack>
   )
 }
