@@ -45,7 +45,16 @@ function SearchResultView({
       {loading && searchResult.length === 0 && <Text>加载中~</Text>}
       {searchResult.length > 0 && errMsg === undefined && (
         <LazyVGrid
-          columns={getGridItem(width)}
+          columns={getGridItem(width, 2, [
+            [2700, 10],
+            [2400, 9],
+            [2100, 8],
+            [1800, 7],
+            [1500, 6],
+            [1200, 5],
+            [900, 4],
+            [500, 3],
+          ])}
           padding={{
             horizontal: 10,
           }}
@@ -62,7 +71,6 @@ function SearchResultView({
                       name={v.name}
                       logged={logged}
                       setLogged={setLogged}
-                      width={width}
                     />
                   }
                 >
@@ -129,7 +137,6 @@ function SearchUserResultView({
                 name={v.username}
                 logged={logged}
                 setLogged={setLogged}
-                width={width}
               />
             }
           >
